@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// ===== Model =====
+
 
 type Task struct {
 	ID    int    `json:"id"`
@@ -14,7 +14,6 @@ type Task struct {
 	Done  bool   `json:"done"`
 }
 
-// ===== In-memory storage =====
 
 var tasks = map[int]Task{
 	1: {ID: 1, Title: "Write unit tests", Done: false},
@@ -23,7 +22,6 @@ var tasks = map[int]Task{
 
 var nextID = 3
 
-// ===== Handler =====
 
 func TasksHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
