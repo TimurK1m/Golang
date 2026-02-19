@@ -1,27 +1,72 @@
 package app
 
 import (
-	"Practice4/internal/repository/_postgres"
-	"Practice4/pkg/modules"
 	"context"
-	"fmt"
+	"encoding/json"
+	"log"
+	"net/http"
 	"time"
+
+	"Practice4/internal/handler"
+	"Practice4/internal/middleware"
+	"Practice4/internal/repository"
+	"Practice4/internal/repository/_postgres"
+	"Practice4/internal/usecase"
+	"Practice4/pkg/modules"
 )
-func Run(){
-ctx, cancel := context.WithCancel(context.Background())
-defer cancel()
-dbConfig := initPostgreConfig()
-_postgre := _postgres.NewPGXDialect(ctx, dbConfig)
-fmt.Println(_postgre)
+
+func Run() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// DB config
+	dbConfig := initPostgreConfig()
+
+	// connect to postgres
+	db := _postgres.NewPGXDialect(ctx, dbConfig)
+
+	// repositories
+	repos := repository.NewRepositories(db)
+
+	// usecase
+	userUsecase := usecase.NewUserUsecase(repos.UserRepository)
+
+	// handler
+	userHandler := handler.NewUserHandler(userUsecase)
+
+	// mux
+	mux := http.NewServeMux()
+
+	// middleware chain
+	handlerWithMiddleware := middleware.Logger(
+		middleware.APIKey(userHandler),
+	)
+
+	mux.Handle("/users", handlerWithMiddleware)
+	mux.Handle("/users/", handlerWithMiddleware)
+
+	// healthcheck
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("HEALTH ROUTE REGISTERED")
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "ok",
+		})
+	})
+
+	log.Println("Server started on :8080")
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
+
 func initPostgreConfig() *modules.PostgreConfig {
-return &modules.PostgreConfig{
-Host: "localhost",
-Port: "5432",
-Username: "postgres",
-Password: "112407",
-DBName: "mydb",
-SSLMode: "disable",
-ExecTimeout: 5 * time.Second,
-}
+	return &modules.PostgreConfig{
+		Host:        "localhost",
+		Port:        "5432",
+		Username:    "postgres",
+		Password:    "112407",
+		DBName:      "mydb",
+		SSLMode:     "disable",
+		ExecTimeout: 5 * time.Second,
+	}
 }

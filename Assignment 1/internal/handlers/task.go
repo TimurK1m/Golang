@@ -28,6 +28,10 @@ func TasksHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 
+	case http.MethodDelete:
+		deleteTask(w, r)
+
+
 	case http.MethodGet:
 		getTasks(w, r)
 
@@ -147,5 +151,40 @@ func updateTask(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(map[string]bool{
 		"updated": true,
+	})
+}
+
+func deleteTask(w http.ResponseWriter, r *http.Request) {
+	idParam := r.URL.Query().Get("id")
+
+	if idParam == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "invalid id",
+		})
+		return
+	}
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "invalid id",
+		})
+		return
+	}
+
+	if _, ok := tasks[id]; !ok {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "task not found",
+		})
+		return
+	}
+
+	delete(tasks, id)
+
+	json.NewEncoder(w).Encode(map[string]bool{
+		"deleted": true,
 	})
 }

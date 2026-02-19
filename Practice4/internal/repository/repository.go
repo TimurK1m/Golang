@@ -7,7 +7,12 @@ import (
 )
 type UserRepository interface {
 	GetUsers() ([]modules.User, error)
+	GetUserByID(id int64) (*modules.User, error)
+	CreateUser(user *modules.User) (int64, error)
+	UpdateUser(user *modules.User) error
+	DeleteUser(id int64) (int64, error)
 }
+
 type Repositories struct {
 	UserRepository
 }

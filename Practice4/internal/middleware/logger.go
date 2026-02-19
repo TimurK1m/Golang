@@ -1,13 +1,10 @@
 package middleware
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
 )
-
-const apiKey = "secret12345"
 
 type responseWriter struct {
 	http.ResponseWriter
@@ -19,29 +16,15 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-
-func APIKey(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		key := r.Header.Get("X-API-KEY")
-
-		if key != apiKey {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{
-				"error": "unauthorized",
-			})
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rw := &responseWriter{w, http.StatusOK}
 
 		start := time.Now()
+
+		rw := &responseWriter{
+			ResponseWriter: w,
+			statusCode:     http.StatusOK,
+		}
 
 		next.ServeHTTP(rw, r)
 
