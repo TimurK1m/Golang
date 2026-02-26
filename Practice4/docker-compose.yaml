@@ -1,0 +1,30 @@
+services:
+  # Название вашего сервиса (приложения)
+  api-service:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      # Вот тут магия: указываем приложению, что БД находится на хосте 'db-postgres'
+      - DB_HOST=host-docker-internal
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=112407
+      - DB_NAME=mydb
+    depends_on:
+      - db-postgres
+
+  # Название сервиса базы данных
+  db-postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=112407
+      - POSTGRES_DB=mydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

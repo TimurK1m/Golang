@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"Practice4/internal/handler"
@@ -55,18 +56,32 @@ func Run() {
 		})
 	})
 
+	port := os.Getenv("APP_PORT")
+    if port == "" {
+        port = "8000"
+    }
+
+	log.Printf("Server started on :%s", port)
+    log.Fatal(http.ListenAndServe(":"+port, mux))
+
 	log.Println("Server started on :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
 func initPostgreConfig() *modules.PostgreConfig {
-	return &modules.PostgreConfig{
-		Host:        "localhost",
-		Port:        "5432",
-		Username:    "postgres",
-		Password:    "112407",
-		DBName:      "mydb",
-		SSLMode:     "disable",
-		ExecTimeout: 5 * time.Second,
-	}
+    // Если переменная не задана, используем host.docker.internal для Docker на Windows/Mac
+    dbHost := os.Getenv("DB_HOST")
+    if dbHost == "" {
+        dbHost = "host.docker.internal" 
+    }
+
+    return &modules.PostgreConfig{
+        Host:        dbHost,
+        Port:        "5432",
+        Username:    "postgres",
+        Password:    "112407",
+        DBName:      "mydb",
+        SSLMode:     "disable",
+        ExecTimeout: 5 * time.Second,
+    }
 }
