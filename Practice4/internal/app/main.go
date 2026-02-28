@@ -20,25 +20,26 @@ func Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// DB config
+	
 	dbConfig := initPostgreConfig()
 
-	// connect to postgres
+	
 	db := _postgres.NewPGXDialect(ctx, dbConfig)
+	
 
-	// repositories
+	
 	repos := repository.NewRepositories(db)
 
-	// usecase
+	
 	userUsecase := usecase.NewUserUsecase(repos.UserRepository)
 
-	// handler
+	
 	userHandler := handler.NewUserHandler(userUsecase)
 
-	// mux
+	
 	mux := http.NewServeMux()
 
-	// middleware chain
+	
 	handlerWithMiddleware := middleware.Logger(
 		middleware.APIKey(userHandler),
 	)
@@ -46,7 +47,7 @@ func Run() {
 	mux.Handle("/users", handlerWithMiddleware)
 	mux.Handle("/users/", handlerWithMiddleware)
 
-	// healthcheck
+	
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("HEALTH ROUTE REGISTERED")
 
