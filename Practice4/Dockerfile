@@ -1,18 +1,24 @@
-FROM golang:1.25.6-alpine
+FROM golang:1.25.6-alpine AS builder
 
 WORKDIR /app
 
-# Копируем go.mod и go.sum для кэширования зависимостей
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Копируем весь проект (включая папку database/migrations)
 COPY . .
 
-RUN go build -o myapp ./cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o myapp ./cmd/api/main.go
 
-# Устанавливаем переменную по умолчанию, чтобы работало на Windows/Mac
+
+FROM alpine
+
+# бинарник
+COPY --from=builder /app/myapp /myapp
+
+# миграции
+COPY --from=builder /app/database /database
+
 ENV DB_HOST=host.docker.internal
 ENV APP_PORT=8000
 
-CMD [ "./myapp" ]
+ENTRYPOINT ["/myapp"]
