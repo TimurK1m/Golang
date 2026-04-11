@@ -6,6 +6,7 @@ import (
 	"Secure/internal/usecase"
 	"Secure/internal/usecase/repo"
 	"Secure/pkg/postgres"
+	"Secure/utils"
 	"log"
 
 	postgresDriver "gorm.io/driver/postgres"
@@ -42,7 +43,7 @@ func main() {
 		// 🚀 Gin
 		r := gin.Default()
 
-	//r.Use(utils.RateLimiter()) // 🔥 ВКЛЮЧИЛ
+	  r.Use(utils.RateLimiter()) // 🔥 ВКЛЮЧИЛ
 		api := r.Group("/api")
 		v1.NewUserRoutes(api, userUseCase, db.Logger)
 
